@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGO News Live 2PPL Hub</title>
+    <style>
+        /* --- 1. VARIABILI & TEMI (LIGHT / DARK) --- */
+        :root {
+            /* Light Mode Default */
+            --bg-body: #F5F5F7;
+            --bg-card: #FFFFFF;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent-blue: #0071E3;
+            --accent-red: #FF3B30;
+            --accent-green: #34C759;
+            --accent-gold: #FFD60A;
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.12);
+            --border-card: rgba(0,0,0,0);
+            --radius-card: 28px;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Mode Overrides */
+            --bg-body: #000000;
+            --bg-card: #1C1C1E;
+            --text-primary: #F5F5F7;
+            --text-secondary: #98989D;
+            --accent-blue: #0A84FF;
+            --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.6);
+            --border-card: 1px solid rgba(255,255,255,0.12);
+        }
+
+        /* --- 2. BASE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* --- 3. HEADER --- */
+        header {
+            background: var(--bg-card);
+            border: var(--border-card);
+            border-radius: var(--radius-card);
+            padding: 40px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            transition: background 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .header-logo { height: 90px; width: auto; object-fit: contain; }
+
+        .header-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .header-content p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 700px;
+        }
+
+        /* --- 4. BENTO GRID --- */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        /* --- 5. CARD COMPONENT --- */
+        .card {
+            background: var(--bg-card);
+            border: var(--border-card);
+            border-radius: var(--radius-card);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); z-index: 10; }
+
+        .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+        .card-icon-img { width: 24px; height: 24px; object-fit: contain; opacity: 0.9; }
+        .card-title { font-size: 1.4rem; font-weight: 600; line-height: 1.1; }
+        .card-desc { font-size: 0.95rem; color: var(--text-secondary); margin-top: auto; line-height: 1.4; }
+
+        /* --- FEATURE 1: VOTING (LOGICA PROGRESSIVA MODIFICATA) --- */
+        .vote-stage {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 150px;
+            margin-bottom: 10px; /* Ridotto leggermente per far spazio alla scritta */
+        }
+
+        .vote-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            width: 30%;
+        }
+
+        /* MODIFICA: Layout per brick affiancati */
+        .bricks-pile {
+            position: relative;
+            height: 60px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Allinea in basso */
+            gap: 4px; /* Spazio tra i mattoncini */
+            transition: transform 0.2s;
+        }
+        
+        .vote-option:hover .bricks-pile { transform: scale(1.05); }
+        .vote-option:active .bricks-pile { transform: scale(0.95); }
+
+        /* MODIFICA: Stile brick relativo e più piccolo */
+        .brick-unit {
+            width: 35px; /* Ridotto per stare affiancati */
+            height: auto;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+            position: relative; /* Non più absolute */
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .brick-unit:active { transform: scale(0.9); }
+
+        .vote-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            background: rgba(128,128,128,0.1);
+            padding: 5px 10px;
+            border-radius: 12px;
+            color: var(--text-primary);
+        }
+
+        /* Scritta aggiuntiva non invasiva */
+        .hint-text {
+            font-size: 0.75rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        /* --- FEATURE 2: ANTI SPOILER (SINGLE BOX + BOUNCE) --- */
+        .spoiler-wrapper {
+            width: 100%;
+            height: 180px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .spoiler-box {
+            position: relative;
+            width: 60%;
+            height: 100%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .spoiler-box:active { transform: scale(0.95); }
+
+        .spoiler-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: filter 0.4s ease, opacity 0.4s ease;
+            filter: blur(0);
+            opacity: 1;
+        }
+
+        .spoiler-img.blurred {
+            filter: blur(25px);
+            opacity: 0.7;
+        }
+
+        .spoiler-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+
+        .spoiler-img.blurred + .spoiler-overlay { opacity: 1; }
+
+        .eye-icon-bg {
+            background: rgba(255, 255, 255, 0.9);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            backdrop-filter: blur(4px);
+            padding: 10px;
+        }
+
+        .reveal-text {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.8);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .bounce-anim { animation: bounceReveal 0.6s cubic-bezier(0.36, 0, 0.66, -0.56); }
+
+        @keyframes bounceReveal {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.15); }
+            50% { transform: scale(0.95); }
+            70% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- FEATURE 3: DARK MODE INTERACTIVE --- */
+        .darkmode-preview {
+            background: var(--bg-body);
+            border: 1px solid rgba(128,128,128,0.2);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            height: 180px;
+            transition: background 0.5s ease;
+        }
+        
+        .switch-container { display: flex; align-items: center; gap: 15px; }
+        .switch-label { font-weight: 600; font-size: 1rem; }
+        
+        .toggle-switch {
+            width: 60px; height: 34px;
+            background: #E9E9EA;
+            border-radius: 34px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 30px; height: 30px; background: white; border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        [data-theme="dark"] .toggle-switch { background: var(--accent-green); }
+        [data-theme="dark"] .toggle-switch::after { transform: translateX(26px); }
+
+        /* --- BOTTOM ROW --- */
+        .bottom-grid {
+            grid-column: span 3;
+            display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 25px;
+        }
+
+        /* Feature Tags */
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .tag { font-size: 0.75rem; background: rgba(128,128,128,0.1); padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--text-secondary); }
+        
+        /* Admin UI */
+        .admin-ui { background: rgba(128,128,128,0.08); padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .admin-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 500;}
+        
+        .mini-switch { 
+            width: 30px; height: 18px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; transition: background 0.3s;
+        }
+        .mini-switch.on { background: var(--accent-green); }
+        .mini-switch::after { 
+            content:''; position:absolute; left:2px; top:2px; height:14px; width:14px; background:white; border-radius:50%; transition: left 0.3s;
+        }
+        .mini-switch.on::after { left: 14px; }
+
+        /* Hall of Fame */
+        .fame-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center; cursor: pointer;
+        }
+
+        .cup-icon {
+            font-size: 5rem;
+            filter: drop-shadow(0 10px 15px rgba(255, 215, 0, 0.4));
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 10px;
+        }
+
+        .fame-container:hover .cup-icon { transform: scale(1.1) rotate(-5deg); }
+        .fame-container:active .cup-icon { transform: scale(0.9); }
+        
+        .cup-icon.animating { animation: bounceCup 0.6s ease; }
+        @keyframes bounceCup {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4) rotate(10deg); }
+            100% { transform: scale(1); }
+        }
+
+        .fame-text { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); max-width: 80%; }
+
+        /* --- STILI BOX NEWS PILLOLA --- */
+        .centered-link-container {
+            grid-column: span 3;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .news-pill-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-card);
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--text-primary);
+            box-shadow: var(--shadow-card);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: var(--border-card);
+        }
+        
+        .news-pill-link:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .pill-logo {
+            height: 32px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        .pill-text {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) {
+            .bento-grid, .bottom-grid { grid-template-columns: 1fr; }
+            .bottom-grid { grid-column: span 1; }
+            .centered-link-container { grid-column: span 1; }
+            header { flex-direction: column; text-align: center; }
+            .vote-stage { height: auto; padding-bottom: 20px; }
+            .bricks-pile { height: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <header>
+        <img src="LOGO-fondo BIANCO-2026.png" alt="Logo" class="header-logo">
+        <div class="header-content">
+            <h1>LEGO News Live 2PPL Hub</h1>
+            <p>Interfaccia dinamica per dirette: votazioni real-time, anti-spoiler e Hall of Fame.</p>
+        </div>
+    </header>
+
+    <div class="bento-grid">
+        
+        <article class="card">
+            <div class="card-header">
+                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
+                <div class="card-title">Sistema di Voto</div>
+            </div>
+            
+            <div class="vote-stage">
+                <div class="vote-option">
+                    <div class="bricks-pile">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                    </div>
+                    <div class="vote-label">Probabile</div>
+                </div>
+                
+                <div class="vote-option">
+                    <div class="bricks-pile">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                    </div>
+                    <div class="vote-label" style="color: var(--accent-blue);">Molto</div>
+                </div>
+
+                <div class="vote-option">
+                    <div class="bricks-pile">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
+                    </div>
+                    <div class="vote-label" style="color: var(--accent-green);">Sicuro</div>
+                </div>
+            </div>
+            <div class="hint-text">fai scoppiare i mattoncini</div>
+            
+            <p class="card-desc">Logica visiva immediata: clicca sui mattoncini per farli esplodere! (Demo)</p>
+        </article>
+
+        <article class="card">
+            <div class="card-header">
+                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
+                <div class="card-title">Anti-Spoiler</div>
+            </div>
+            
+            <div class="spoiler-wrapper">
+                <div class="spoiler-box" onclick="toggleSpoiler(this)">
+                    <img src="scatola.png" class="spoiler-img blurred" id="spoilerImage">
+                    
+                    <div class="spoiler-overlay">
+                        <div class="eye-icon-bg">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #007AFF;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </div>
+                        <span class="reveal-text">CLICK TO REVEAL</span>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="card-desc">Immagine sfocata di default. Clicca per rivelare con effetto sorpresa.</p>
+        </article>
+
+        <article class="card">
+            <div class="card-header">
+                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
+                <div class="card-title">Design Adattivo</div>
+            </div>
+            
+            <div class="darkmode-preview">
+                <div class="switch-container">
+                    <span class="switch-label">Dark Mode</span>
+                    <div class="toggle-switch" onclick="toggleGlobalTheme()"></div>
+                </div>
+                <p style="font-size: 0.8rem; opacity: 0.7;">Controlla il tema dell'intera Hub da qui.</p>
+            </div>
+
+            <p class="card-desc">Supporto nativo per temi chiari e scuri con transizioni fluide in stile iOS.</p>
+        </article>
+
+        <div class="bottom-grid">
+            
+            <article class="card">
+                <div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Sotto il cofano</div></div>
+                <div class="tech-tags">
+                    <span class="tag">HTML5</span>
+                    <span class="tag">CSS Variables</span>
+                    <span class="tag">Supabase</span>
+                    <span class="tag">Vanilla JS</span>
+                </div>
+                <p class="card-desc">Performance elevate senza framework pesanti.</p>
+            </article>
+
+            <article class="card" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0));">
+                <div class="card-title" style="text-align: center; color: var(--accent-gold); text-shadow: 0 1px 2px rgba(0,0,0,0.1);">🏆 Hall of Fame</div>
+                
+                <div class="fame-container" onclick="celebrate(this)">
+                    <div class="cup-icon">🏆</div>
+                    <div class="fame-text">Vota la tua news preferita cliccando sulla coppa!</div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Regia Live</div></div>
+                <div class="admin-ui">
+                    <div class="admin-line"><span>Show News</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div>
+                    <div class="admin-line"><span>Hide Spoilers</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div>
+                    <div class="admin-line" style="opacity:0.5;"><span>Overlay</span><div class="mini-switch" onclick="toggleMiniSwitch(this)"></div></div>
+                </div>
+            </article>
+
+        </div>
+
+        <div class="centered-link-container">
+            <a href="https://itavix.github.io/lego-news-live/" target="_blank" class="news-pill-link">
+                <img src="LOGO-fondo BIANCO-2026.png" alt="Logo" class="pill-logo">
+                <span class="pill-text">Vai alle News</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 1. Funzione Cambio Tema Globale
+    function toggleGlobalTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-theme', newTheme);
+    }
+
+    // 2. Funzione Animazione Hall of Fame
+    function celebrate(element) {
+        const cup = element.querySelector('.cup-icon');
+        const text = element.querySelector('.fame-text');
+        
+        cup.classList.add('animating');
+        
+        const originalText = text.innerText;
+        text.innerText = "Voto Registrato! ⭐";
+        text.style.color = "var(--accent-green)";
+
+        setTimeout(() => {
+            cup.classList.remove('animating');
+            text.innerText = originalText;
+            text.style.color = "var(--text-secondary)";
+        }, 1500);
+    }
+
+    // 3. Funzione Anti-Spoiler con Rimbalzo
+    function toggleSpoiler(element) {
+        const img = element.querySelector('.spoiler-img');
+        
+        if (img.classList.contains('blurred')) {
+            img.classList.remove('blurred');
+            img.classList.add('bounce-anim');
+            setTimeout(() => {
+                img.classList.remove('bounce-anim');
+            }, 600);
+        } else {
+            img.classList.add('blurred');
+        }
+    }
+
+    // 4. Toggle Brick/Boom
+    function toggleBrick(imgElement) {
+        if (imgElement.src.includes('brick.png')) {
+            imgElement.src = 'boom.png'; 
+        } else {
+            imgElement.src = 'brick.png';
+        }
+        event.stopPropagation();
+    }
+
+    // 5. Funzione per i mini switch del Box 6
+    function toggleMiniSwitch(switchEl) {
+        switchEl.classList.toggle('on');
+    }
+</script>
+
+</body>
+</html>
