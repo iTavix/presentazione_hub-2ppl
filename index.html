@@ -7,7 +7,6 @@
     <style>
         /* --- 1. VARIABILI & TEMI (LIGHT / DARK) --- */
         :root {
-            /* Light Mode Default */
             --bg-body: #F5F5F7;
             --bg-card: #FFFFFF;
             --text-primary: #1D1D1F;
@@ -23,7 +22,6 @@
         }
 
         [data-theme="dark"] {
-            /* Dark Mode Overrides */
             --bg-body: #000000;
             --bg-card: #1C1C1E;
             --text-primary: #F5F5F7;
@@ -43,344 +41,173 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            padding: 40px 20px;
+            margin: 0;
             transition: background-color 0.5s ease, color 0.5s ease;
+            overflow-x: hidden;
         }
 
+        /* --- INTRO LAYER --- */
+        #introLayer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        #introLayer.fade-out { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* BRANDING NELLA PAGINA INTRO */
+        .intro-branding {
+            position: absolute; top: 40px; left: 30px; 
+            display: flex; align-items: center; gap: 15px;
+        }
+        .intro-branding-logo {
+            height: 60px; width: auto; 
+            /* Nessun filtro ombra pesante, pulito */
+        }
+        .intro-branding-text {
+            color: var(--text-primary); /* Colore dinamico in base al tema */
+            font-size: 1.5rem; font-weight: 700;
+        }
+
+        .intro-box {
+            width: 280px; height: 280px; background: var(--bg-card); border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            position: relative; border: var(--border-card);
+        }
+        .intro-box:hover { transform: scale(1.05); box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+        .intro-box:active { transform: scale(0.95); }
+
+        .play-icon-container {
+            width: 80px; height: 80px; background: var(--text-primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+            color: var(--bg-card); transition: background 0.3s, color 0.3s;
+        }
+        .intro-text { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; transition: color 0.3s; }
+
+        /* --- VIDEO FULLSCREEN PLAYER --- */
+        #videoContainer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 10000; display: none;
+            align-items: center; justify-content: center;
+        }
+        #introVideo { max-width: 100%; max-height: 100%; width: 100%; outline: none; }
+
+        #closeVideoBtn {
+            position: absolute; top: 40px; right: 30px; color: white; font-size: 30px;
+            cursor: pointer; background: rgba(255,255,255,0.2); width: 44px; height: 44px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); z-index: 10001; transition: background 0.2s;
+        }
+        #closeVideoBtn:hover { background: rgba(255,255,255,0.4); }
+
+        /* Adattamenti Mobile per Intro */
+        @media (max-width: 768px) {
+            .intro-branding { top: 20px; left: 20px; gap: 10px; }
+            .intro-branding-logo { height: 40px; }
+            .intro-branding-text { font-size: 1.1rem; }
+            #closeVideoBtn { top: 20px; right: 20px; }
+        }
+
+        /* --- MAIN APP CONTAINER --- */
         .container {
-            max-width: 1200px;
-            width: 100%;
+            max-width: 1200px; width: 100%; padding: 40px 20px;
+            opacity: 0; transform: scale(0.98);
+            transition: opacity 1s ease 0.5s, transform 1s ease 0.5s;
         }
+        .container.visible { opacity: 1; transform: scale(1); }
 
-        /* --- 3. HEADER --- */
+        /* --- HEADER --- */
         header {
-            background: var(--bg-card);
-            border: var(--border-card);
-            border-radius: var(--radius-card);
-            padding: 40px;
-            box-shadow: var(--shadow-card);
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 30px;
+            background: var(--bg-card); border: var(--border-card); border-radius: var(--radius-card);
+            padding: 40px; box-shadow: var(--shadow-card); margin-bottom: 30px;
+            display: flex; align-items: center; gap: 30px;
             transition: background 0.5s ease, box-shadow 0.5s ease;
         }
-
         .header-logo { height: 90px; width: auto; object-fit: contain; }
+        .header-content h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .header-content p { font-size: 1.2rem; color: var(--text-secondary); font-weight: 400; max-width: 700px; }
 
-        .header-content h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
-
-        .header-content p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            font-weight: 400;
-            max-width: 700px;
-        }
-
-        /* --- 4. BENTO GRID --- */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-        }
-
-        /* --- 5. CARD COMPONENT --- */
+        /* --- BENTO GRID & CARDS --- */
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
         .card {
-            background: var(--bg-card);
-            border: var(--border-card);
-            border-radius: var(--radius-card);
-            padding: 30px;
-            box-shadow: var(--shadow-card);
+            background: var(--bg-card); border: var(--border-card); border-radius: var(--radius-card);
+            padding: 30px; box-shadow: var(--shadow-card);
             transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.5s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
-
         .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); z-index: 10; }
-
         .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
         .card-icon-img { width: 24px; height: 24px; object-fit: contain; opacity: 0.9; }
         .card-title { font-size: 1.4rem; font-weight: 600; line-height: 1.1; }
         .card-desc { font-size: 0.95rem; color: var(--text-secondary); margin-top: auto; line-height: 1.4; }
 
-        /* --- FEATURE 1: VOTING (LOGICA PROGRESSIVA MODIFICATA) --- */
-        .vote-stage {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            height: 150px;
-            margin-bottom: 10px; /* Ridotto leggermente per far spazio alla scritta */
-        }
+        /* --- WELCOME CARD --- */
+        .welcome-card { grid-column: span 3; background: linear-gradient(135deg, var(--bg-card) 0%, rgba(0,113,227,0.08) 100%); }
+        .feature-list { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 10px; }
+        .feature-item { display: flex; align-items: center; gap: 15px; font-size: 1rem; color: var(--text-primary); }
+        .feature-icon-box { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(0, 113, 227, 0.1); border-radius: 10px; color: var(--accent-blue); flex-shrink: 0; }
+        [data-theme="dark"] .feature-icon-box { background: rgba(10, 132, 255, 0.2); color: var(--accent-blue); }
+        .feature-item span strong { font-weight: 600; }
 
-        .vote-option {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            width: 30%;
-        }
-
-        /* MODIFICA: Layout per brick affiancati */
-        .bricks-pile {
-            position: relative;
-            height: 60px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end; /* Allinea in basso */
-            gap: 4px; /* Spazio tra i mattoncini */
-            transition: transform 0.2s;
-        }
-        
+        /* --- VOTING & INTERACTIVE --- */
+        .vote-stage { display: flex; justify-content: space-between; align-items: flex-end; height: 150px; margin-bottom: 10px; }
+        .vote-option { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; width: 30%; }
+        .bricks-pile { position: relative; height: 60px; width: 100%; display: flex; justify-content: center; align-items: flex-end; gap: 4px; transition: transform 0.2s; }
         .vote-option:hover .bricks-pile { transform: scale(1.05); }
-        .vote-option:active .bricks-pile { transform: scale(0.95); }
-
-        /* MODIFICA: Stile brick relativo e più piccolo */
-        .brick-unit {
-            width: 35px; /* Ridotto per stare affiancati */
-            height: auto;
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
-            position: relative; /* Non più absolute */
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
+        .brick-unit { width: 35px; height: auto; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2)); position: relative; cursor: pointer; transition: transform 0.2s; }
         .brick-unit:active { transform: scale(0.9); }
+        .vote-label { font-size: 0.8rem; font-weight: 600; text-align: center; background: rgba(128,128,128,0.1); padding: 5px 10px; border-radius: 12px; color: var(--text-primary); }
+        .hint-text { font-size: 0.75rem; text-align: center; color: var(--text-secondary); margin-bottom: 15px; opacity: 0.8; font-weight: 500; }
 
-        .vote-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-align: center;
-            background: rgba(128,128,128,0.1);
-            padding: 5px 10px;
-            border-radius: 12px;
-            color: var(--text-primary);
-        }
+        /* --- SPOILER --- */
+        .spoiler-wrapper { width: 100%; height: 180px; position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        .spoiler-box { position: relative; width: 60%; height: 100%; cursor: pointer; transition: transform 0.2s; }
+        .spoiler-img { width: 100%; height: 100%; object-fit: contain; filter: blur(25px); opacity: 0.7; transition: filter 0.5s ease, opacity 0.5s ease; }
+        .spoiler-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; transition: opacity 0.5s ease; opacity: 1; }
+        .spoiler-box:hover .spoiler-img { filter: blur(0); opacity: 1; }
+        .spoiler-box:hover .spoiler-overlay { opacity: 0; }
+        .eye-icon-bg { background: rgba(255, 255, 255, 0.9); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); backdrop-filter: blur(4px); padding: 10px; }
+        .reveal-text { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); background: rgba(255,255,255,0.8); padding: 4px 8px; border-radius: 8px; }
 
-        /* Scritta aggiuntiva non invasiva */
-        .hint-text {
-            font-size: 0.75rem;
-            text-align: center;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
-            opacity: 0.8;
-            font-weight: 500;
-        }
-
-        /* --- FEATURE 2: ANTI SPOILER (SINGLE BOX + BOUNCE) --- */
-        .spoiler-wrapper {
-            width: 100%;
-            height: 180px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .spoiler-box {
-            position: relative;
-            width: 60%;
-            height: 100%;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .spoiler-box:active { transform: scale(0.95); }
-
-        .spoiler-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: filter 0.4s ease, opacity 0.4s ease;
-            filter: blur(0);
-            opacity: 1;
-        }
-
-        .spoiler-img.blurred {
-            filter: blur(25px);
-            opacity: 0.7;
-        }
-
-        .spoiler-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            opacity: 0;
-        }
-
-        .spoiler-img.blurred + .spoiler-overlay { opacity: 1; }
-
-        .eye-icon-bg {
-            background: rgba(255, 255, 255, 0.9);
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            backdrop-filter: blur(4px);
-            padding: 10px;
-        }
-
-        .reveal-text {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            background: rgba(255,255,255,0.8);
-            padding: 4px 8px;
-            border-radius: 8px;
-        }
-
-        .bounce-anim { animation: bounceReveal 0.6s cubic-bezier(0.36, 0, 0.66, -0.56); }
-
-        @keyframes bounceReveal {
-            0% { transform: scale(1); }
-            30% { transform: scale(1.15); }
-            50% { transform: scale(0.95); }
-            70% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* --- FEATURE 3: DARK MODE INTERACTIVE --- */
-        .darkmode-preview {
-            background: var(--bg-body);
-            border: 1px solid rgba(128,128,128,0.2);
-            border-radius: 18px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            height: 180px;
-            transition: background 0.5s ease;
-        }
-        
+        /* --- DARK MODE SWITCH --- */
+        .darkmode-preview { background: var(--bg-body); border: 1px solid rgba(128,128,128,0.2); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; height: 180px; transition: background 0.5s ease; }
         .switch-container { display: flex; align-items: center; gap: 15px; }
         .switch-label { font-weight: 600; font-size: 1rem; }
-        
-        .toggle-switch {
-            width: 60px; height: 34px;
-            background: #E9E9EA;
-            border-radius: 34px;
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .toggle-switch::after {
-            content: ''; position: absolute; top: 2px; left: 2px;
-            width: 30px; height: 30px; background: white; border-radius: 50%;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        
+        .toggle-switch { width: 60px; height: 34px; background: #E9E9EA; border-radius: 34px; position: relative; cursor: pointer; transition: background 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 30px; height: 30px; background: white; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         [data-theme="dark"] .toggle-switch { background: var(--accent-green); }
         [data-theme="dark"] .toggle-switch::after { transform: translateX(26px); }
 
         /* --- BOTTOM ROW --- */
-        .bottom-grid {
-            grid-column: span 3;
-            display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 25px;
-        }
-
-        /* Feature Tags */
+        .bottom-grid { grid-column: span 3; display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 25px; }
         .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         .tag { font-size: 0.75rem; background: rgba(128,128,128,0.1); padding: 5px 10px; border-radius: 6px; font-weight: 600; color: var(--text-secondary); }
-        
-        /* Admin UI */
         .admin-ui { background: rgba(128,128,128,0.08); padding: 15px; border-radius: 12px; margin-top: 10px; }
         .admin-line { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.85rem; font-weight: 500;}
-        
-        .mini-switch { 
-            width: 30px; height: 18px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; transition: background 0.3s;
-        }
+        .mini-switch { width: 30px; height: 18px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; transition: background 0.3s; }
         .mini-switch.on { background: var(--accent-green); }
-        .mini-switch::after { 
-            content:''; position:absolute; left:2px; top:2px; height:14px; width:14px; background:white; border-radius:50%; transition: left 0.3s;
-        }
+        .mini-switch::after { content:''; position:absolute; left:2px; top:2px; height:14px; width:14px; background:white; border-radius:50%; transition: left 0.3s; }
         .mini-switch.on::after { left: 14px; }
-
-        /* Hall of Fame */
-        .fame-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; text-align: center; cursor: pointer;
-        }
-
-        .cup-icon {
-            font-size: 5rem;
-            filter: drop-shadow(0 10px 15px rgba(255, 215, 0, 0.4));
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: 10px;
-        }
-
+        .fame-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; cursor: pointer; }
+        .cup-icon { font-size: 5rem; filter: drop-shadow(0 10px 15px rgba(255, 215, 0, 0.4)); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin-bottom: 10px; }
         .fame-container:hover .cup-icon { transform: scale(1.1) rotate(-5deg); }
         .fame-container:active .cup-icon { transform: scale(0.9); }
-        
         .cup-icon.animating { animation: bounceCup 0.6s ease; }
-        @keyframes bounceCup {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.4) rotate(10deg); }
-            100% { transform: scale(1); }
-        }
-
+        @keyframes bounceCup { 0% { transform: scale(1); } 50% { transform: scale(1.4) rotate(10deg); } 100% { transform: scale(1); } }
         .fame-text { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); max-width: 80%; }
+        .centered-link-container { grid-column: span 3; display: flex; justify-content: center; margin-top: 20px; }
+        .news-pill-link { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 12px 30px; border-radius: 50px; text-decoration: none; color: var(--text-primary); box-shadow: var(--shadow-card); transition: transform 0.3s ease, box-shadow 0.3s ease; border: var(--border-card); }
+        .news-pill-link:hover { transform: scale(1.05); box-shadow: var(--shadow-hover); }
+        .pill-logo { height: 32px; width: auto; object-fit: contain; }
+        .pill-text { font-weight: 700; letter-spacing: 0.5px; font-size: 0.9rem; }
 
-        /* --- STILI BOX NEWS PILLOLA --- */
-        .centered-link-container {
-            grid-column: span 3;
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        
-        .news-pill-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg-card);
-            padding: 12px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            color: var(--text-primary);
-            box-shadow: var(--shadow-card);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: var(--border-card);
-        }
-        
-        .news-pill-link:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-hover);
-        }
-        
-        .pill-logo {
-            height: 32px;
-            width: auto;
-            object-fit: contain;
-        }
-        
-        .pill-text {
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-        }
-
-        /* --- RESPONSIVE --- */
         @media (max-width: 900px) {
             .bento-grid, .bottom-grid { grid-template-columns: 1fr; }
             .bottom-grid { grid-column: span 1; }
+            .welcome-card { grid-column: span 1; }
+            .feature-list { grid-template-columns: 1fr; }
             .centered-link-container { grid-column: span 1; }
             header { flex-direction: column; text-align: center; }
             .vote-stage { height: auto; padding-bottom: 20px; }
@@ -390,159 +217,120 @@
 </head>
 <body>
 
-<div class="container">
-    
+<div id="introLayer">
+    <div class="intro-branding">
+        <img src="LOGO-fondo BIANCO-2026.png" alt="Logo 2PPL" class="intro-branding-logo">
+        <span class="intro-branding-text">Lego News Live 2PPL</span>
+    </div>
+
+    <div class="intro-box" id="introBox" onclick="handleIntroClick()">
+        <div class="play-icon-container" id="introIcon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <path d="M5 3l14 9-14 9V3z"/> 
+            </svg>
+        </div>
+        <div class="intro-text" id="introText">Guarda Video</div>
+    </div>
+</div>
+
+<div id="videoContainer">
+    <div id="closeVideoBtn" onclick="closeVideo()">✕</div>
+    <video id="introVideo" playsinline>
+        <source src="pres.MOV" type="video/quicktime">
+        <source src="pres.mp4" type="video/mp4">
+    </video>
+</div>
+
+<div class="container" id="mainContent">
     <header>
         <img src="LOGO-fondo BIANCO-2026.png" alt="Logo" class="header-logo">
         <div class="header-content">
             <h1>LEGO News Live 2PPL Hub</h1>
-            <p>Interfaccia dinamica per dirette: votazioni real-time, anti-spoiler e Hall of Fame.</p>
+            <p>Interfaccia dinamica per le news: votazioni real-time, anti-spoiler e Hall of Fame.</p>
         </div>
     </header>
-
     <div class="bento-grid">
-        
+        <article class="card welcome-card">
+            <div class="card-header"><div class="card-title" style="font-size: 1.8rem;">Benvenuti nella Nuova Era delle News 2PPL! 🚀</div></div>
+            <ul class="feature-list">
+                <li class="feature-item"><div class="feature-icon-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></div><span><strong>Niente più Spoiler</strong> (immagini oscurate)</span></li>
+                <li class="feature-item"><div class="feature-icon-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div><span><strong>Interattività Totale</strong> ("Boom" & Brick)</span></li>
+                <li class="feature-item"><div class="feature-icon-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div><span><strong>Archivio Storico</strong> (recupera live passate)</span></li>
+                <li class="feature-item"><div class="feature-icon-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></div><span><strong>Design fluido</strong>, Dark Mode auto</span></li>
+            </ul>
+        </article>
         <article class="card">
-            <div class="card-header">
-                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
-                <div class="card-title">Sistema di Voto</div>
-            </div>
-            
+            <div class="card-header"><img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img"><div class="card-title">Sistema di Voto</div></div>
             <div class="vote-stage">
-                <div class="vote-option">
-                    <div class="bricks-pile">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                    </div>
-                    <div class="vote-label">Probabile</div>
-                </div>
-                
-                <div class="vote-option">
-                    <div class="bricks-pile">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                    </div>
-                    <div class="vote-label" style="color: var(--accent-blue);">Molto</div>
-                </div>
-
-                <div class="vote-option">
-                    <div class="bricks-pile">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                        <img src="brick.png" class="brick-unit" onclick="toggleBrick(this)">
-                    </div>
-                    <div class="vote-label" style="color: var(--accent-green);">Sicuro</div>
-                </div>
+                <div class="vote-option"><div class="bricks-pile"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"></div><div class="vote-label">Probabile</div></div>
+                <div class="vote-option"><div class="bricks-pile"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"></div><div class="vote-label" style="color: var(--accent-blue);">Molto</div></div>
+                <div class="vote-option"><div class="bricks-pile"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"><img src="brick.png" class="brick-unit" onclick="toggleBrick(this)"></div><div class="vote-label" style="color: var(--accent-green);">Sicuro</div></div>
             </div>
-            <div class="hint-text">fai scoppiare i mattoncini</div>
-            
-            <p class="card-desc">Logica visiva immediata: clicca sui mattoncini per farli esplodere! (Demo)</p>
+            <div class="hint-text">fai scoppiare i mattoncini</div><p class="card-desc">Logica visiva immediata: clicca sui mattoncini per farli esplodere! (Demo)</p>
         </article>
-
         <article class="card">
-            <div class="card-header">
-                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
-                <div class="card-title">Anti-Spoiler</div>
-            </div>
-            
-            <div class="spoiler-wrapper">
-                <div class="spoiler-box" onclick="toggleSpoiler(this)">
-                    <img src="scatola.png" class="spoiler-img blurred" id="spoilerImage">
-                    
-                    <div class="spoiler-overlay">
-                        <div class="eye-icon-bg">
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #007AFF;">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </div>
-                        <span class="reveal-text">CLICK TO REVEAL</span>
-                    </div>
-                </div>
-            </div>
-            
-            <p class="card-desc">Immagine sfocata di default. Clicca per rivelare con effetto sorpresa.</p>
+            <div class="card-header"><img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img"><div class="card-title">Anti-Spoiler</div></div>
+            <div class="spoiler-wrapper"><div class="spoiler-box"><img src="scatola.png" class="spoiler-img" id="spoilerImage"><div class="spoiler-overlay"><div class="eye-icon-bg"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #007AFF;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="reveal-text">HOVER TO REVEAL</span></div></div></div><p class="card-desc">Immagine sfocata di default. Passa il mouse sopra per rivelare.</p>
         </article>
-
         <article class="card">
-            <div class="card-header">
-                <img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img">
-                <div class="card-title">Design Adattivo</div>
-            </div>
-            
-            <div class="darkmode-preview">
-                <div class="switch-container">
-                    <span class="switch-label">Dark Mode</span>
-                    <div class="toggle-switch" onclick="toggleGlobalTheme()"></div>
-                </div>
-                <p style="font-size: 0.8rem; opacity: 0.7;">Controlla il tema dell'intera Hub da qui.</p>
-            </div>
-
-            <p class="card-desc">Supporto nativo per temi chiari e scuri con transizioni fluide in stile iOS.</p>
+            <div class="card-header"><img src="LOGO-fondo BIANCO-2026.png" class="card-icon-img"><div class="card-title">Design Adattivo</div></div>
+            <div class="darkmode-preview"><div class="switch-container"><span class="switch-label">Dark Mode</span><div class="toggle-switch" onclick="toggleGlobalTheme()"></div></div><p style="font-size: 0.8rem; opacity: 0.7;">Controlla il tema dell'intera Hub da qui.</p></div><p class="card-desc">Supporto nativo per temi chiari e scuri con transizioni fluide in stile iOS.</p>
         </article>
-
         <div class="bottom-grid">
-            
-            <article class="card">
-                <div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Sotto il cofano</div></div>
-                <div class="tech-tags">
-                    <span class="tag">HTML5</span>
-                    <span class="tag">CSS Variables</span>
-                    <span class="tag">Supabase</span>
-                    <span class="tag">Vanilla JS</span>
-                </div>
-                <p class="card-desc">Performance elevate senza framework pesanti.</p>
-            </article>
-
-            <article class="card" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0));">
-                <div class="card-title" style="text-align: center; color: var(--accent-gold); text-shadow: 0 1px 2px rgba(0,0,0,0.1);">🏆 Hall of Fame</div>
-                
-                <div class="fame-container" onclick="celebrate(this)">
-                    <div class="cup-icon">🏆</div>
-                    <div class="fame-text">Vota la tua news preferita cliccando sulla coppa!</div>
-                </div>
-            </article>
-
-            <article class="card">
-                <div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Regia Live</div></div>
-                <div class="admin-ui">
-                    <div class="admin-line"><span>Show News</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div>
-                    <div class="admin-line"><span>Hide Spoilers</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div>
-                    <div class="admin-line" style="opacity:0.5;"><span>Overlay</span><div class="mini-switch" onclick="toggleMiniSwitch(this)"></div></div>
-                </div>
-            </article>
-
+            <article class="card"><div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Sotto il cofano</div></div><div class="tech-tags"><span class="tag">HTML5</span><span class="tag">CSS Variables</span><span class="tag">Supabase</span><span class="tag">Vanilla JS</span></div><p class="card-desc">Performance elevate senza framework pesanti.</p></article>
+            <article class="card" style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,255,255,0));"><div class="card-title" style="text-align: center; color: var(--accent-gold); text-shadow: 0 1px 2px rgba(0,0,0,0.1);">🏆 Hall of Fame</div><div class="fame-container" onclick="celebrate(this)"><div class="cup-icon">🏆</div><div class="fame-text">Vota la tua news preferita cliccando sulla coppa!</div></div></article>
+            <article class="card"><div class="card-header"><div class="card-title" style="font-size: 1.2rem;">Regia Live</div></div><div class="admin-ui"><div class="admin-line"><span>Show News</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div><div class="admin-line"><span>Hide Spoilers</span><div class="mini-switch on" onclick="toggleMiniSwitch(this)"></div></div><div class="admin-line" style="opacity:0.5;"><span>Overlay</span><div class="mini-switch" onclick="toggleMiniSwitch(this)"></div></div></div></article>
         </div>
-
-        <div class="centered-link-container">
-            <a href="https://itavix.github.io/lego-news-live/" target="_blank" class="news-pill-link">
-                <img src="LOGO-fondo BIANCO-2026.png" alt="Logo" class="pill-logo">
-                <span class="pill-text">Vai alle News</span>
-            </a>
-        </div>
-
+        <div class="centered-link-container"><a href="https://itavix.github.io/lego-news-live/" target="_blank" class="news-pill-link"><img src="LOGO-fondo BIANCO-2026.png" alt="Logo" class="pill-logo"><span class="pill-text">Vai alle News</span></a></div>
     </div>
 </div>
 
 <script>
-    // 1. Funzione Cambio Tema Globale
-    function toggleGlobalTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-theme', newTheme);
+    let introState = 'play';
+    const videoEl = document.getElementById('introVideo');
+    const videoContainer = document.getElementById('videoContainer');
+    const introBox = document.getElementById('introBox');
+    const introIcon = document.getElementById('introIcon');
+    const introText = document.getElementById('introText');
+
+    function handleIntroClick() {
+        if (introState === 'play') {
+            introState = 'video';
+            videoContainer.style.display = 'flex';
+            videoEl.play();
+        } else if (introState === 'enter') {
+            const layer = document.getElementById('introLayer');
+            const main = document.getElementById('mainContent');
+            layer.classList.add('fade-out');
+            main.classList.add('visible');
+            setTimeout(() => { layer.style.display = 'none'; }, 800);
+        }
     }
 
-    // 2. Funzione Animazione Hall of Fame
+    videoEl.onended = function() { closeVideo(); };
+
+    function closeVideo() {
+        videoEl.pause();
+        videoContainer.style.display = 'none';
+        introState = 'enter';
+        introText.innerText = "Entra";
+        introIcon.innerHTML = `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+        introIcon.style.color = "var(--accent-green)";
+        introIcon.style.background = "rgba(52, 199, 89, 0.1)";
+    }
+
+    function toggleGlobalTheme() {
+        const html = document.documentElement;
+        html.setAttribute('data-theme', html.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    }
+
     function celebrate(element) {
         const cup = element.querySelector('.cup-icon');
         const text = element.querySelector('.fame-text');
-        
         cup.classList.add('animating');
-        
         const originalText = text.innerText;
         text.innerText = "Voto Registrato! ⭐";
         text.style.color = "var(--accent-green)";
-
         setTimeout(() => {
             cup.classList.remove('animating');
             text.innerText = originalText;
@@ -550,35 +338,12 @@
         }, 1500);
     }
 
-    // 3. Funzione Anti-Spoiler con Rimbalzo
-    function toggleSpoiler(element) {
-        const img = element.querySelector('.spoiler-img');
-        
-        if (img.classList.contains('blurred')) {
-            img.classList.remove('blurred');
-            img.classList.add('bounce-anim');
-            setTimeout(() => {
-                img.classList.remove('bounce-anim');
-            }, 600);
-        } else {
-            img.classList.add('blurred');
-        }
-    }
-
-    // 4. Toggle Brick/Boom
     function toggleBrick(imgElement) {
-        if (imgElement.src.includes('brick.png')) {
-            imgElement.src = 'boom.png'; 
-        } else {
-            imgElement.src = 'brick.png';
-        }
+        imgElement.src = imgElement.src.includes('brick.png') ? 'boom.png' : 'brick.png';
         event.stopPropagation();
     }
 
-    // 5. Funzione per i mini switch del Box 6
-    function toggleMiniSwitch(switchEl) {
-        switchEl.classList.toggle('on');
-    }
+    function toggleMiniSwitch(switchEl) { switchEl.classList.toggle('on'); }
 </script>
 
 </body>
